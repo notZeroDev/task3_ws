@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Face detection node that consumes camera frames and publishes face data."""
 
-import json
 import os
 
 import cv2
@@ -9,7 +8,7 @@ import rclpy
 from cv_bridge import CvBridge
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from std_msgs.msg import String
+from smart_exam_protocoring_msgs.msg import BoundingBox, FaceData
 
 
 class FaceDetectionNode(Node):
@@ -49,7 +48,7 @@ class FaceDetectionNode(Node):
             self.image_callback,
             10,
         )
-        self.publisher = self.create_publisher(String, "/face_data", 10)
+        self.publisher = self.create_publisher(FaceData, "/face_data", 10)
 
         self.get_logger().info(
             "Face detection node initialized: "
@@ -71,12 +70,15 @@ class FaceDetectionNode(Node):
             minNeighbors=self.min_neighbors,
         )
 
-        face_data = [
-            {"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
-            for (x, y, w, h) in faces
-        ]
+        boxes = []
 
         for x, y, w, h in faces:
+            box = BoundingBox()
+            box.x = int(x)
+            box.y = int(y)
+            box.w = int(w)
+            box.h = int(h)
+            boxes.append(box)
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         cv2.putText(
@@ -89,8 +91,9 @@ class FaceDetectionNode(Node):
             2,
         )
 
-        out_msg = String()
-        out_msg.data = json.dumps(face_data)
+        out_msg = FaceData()
+        out_msg.header = msg.header
+        out_msg.boxes = boxes
         self.publisher.publish(out_msg)
 
         if self.display_window:

@@ -27,10 +27,12 @@ class CameraNode(Node):
             "camera_source", default_video_path
         )  # Default to packaged video
         self.declare_parameter("frame_rate", 30)  # Default to 30 FPS
+        self.declare_parameter("frame_id", "camera_frame")
 
         # Get parameter values
         camera_source = self.get_parameter("camera_source").value
         self.frame_rate = self.get_parameter("frame_rate").value
+        self.frame_id = str(self.get_parameter("frame_id").value)
 
         # Convert camera_source to appropriate type
         try:
@@ -87,6 +89,8 @@ class CameraNode(Node):
         try:
             # Convert frame to ROS Image message
             msg = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
+            msg.header.stamp = self.get_clock().now().to_msg()
+            msg.header.frame_id = self.frame_id
             self.publisher_.publish(msg)
             self.get_logger().debug("Frame published")
         except Exception as e:
