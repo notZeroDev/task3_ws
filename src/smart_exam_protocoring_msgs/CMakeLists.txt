@@ -8,6 +8,8 @@ find_package(std_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BoundingBox.msg"
   "msg/FaceData.msg"
+  "msg/DetectedObject.msg"
+  "msg/DetectedObjectArray.msg"
   DEPENDENCIES std_msgs
 )
 
