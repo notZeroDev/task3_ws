@@ -27,6 +27,7 @@ setup(
         "console_scripts": [
             "camera_node=smart_exam_protocoring.camera_stream:main",
             "face_detection_node=smart_exam_protocoring.face_detection:main",
+            "object_detector_node=smart_exam_protocoring.object_detector:main"
         ],
     },
 )
