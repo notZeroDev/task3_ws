@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""Face detection node that consumes camera frames and publishes face data."""
-
-import os
 
 import cv2
 import rclpy
@@ -19,22 +16,9 @@ class FaceDetectionNode(Node):
 
         self.declare_parameter("scale_factor", 1.1)
         self.declare_parameter("min_neighbors", 5)
-        self.declare_parameter("display_window", True)
 
         self.scale_factor = float(self.get_parameter("scale_factor").value)
         self.min_neighbors = int(self.get_parameter("min_neighbors").value)
-        self.display_window = bool(self.get_parameter("display_window").value)
-
-        # OpenCV GUI requires a display server; disable window output in headless runs.
-        if self.display_window and not os.environ.get("DISPLAY"):
-            self.get_logger().warn(
-                "display_window is enabled but DISPLAY is not set. "
-                "Disabling OpenCV window output."
-            )
-            self.display_window = False
-
-        if self.display_window:
-            cv2.namedWindow("Face Detection", cv2.WINDOW_NORMAL)
 
         cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
@@ -79,31 +63,14 @@ class FaceDetectionNode(Node):
             box.w = int(w)
             box.h = int(h)
             boxes.append(box)
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-        cv2.putText(
-            frame,
-            f"Faces: {len(faces)}",
-            (10, 30),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.9,
-            (0, 255, 0),
-            2,
-        )
 
         out_msg = FaceData()
         out_msg.header = msg.header
         out_msg.boxes = boxes
         self.publisher.publish(out_msg)
 
-        if self.display_window:
-            cv2.imshow("Face Detection", frame)
-            cv2.waitKey(1)
-
     def destroy_node(self):
         """Clean up resources."""
-        if self.display_window:
-            cv2.destroyAllWindows()
         super().destroy_node()
 
 
