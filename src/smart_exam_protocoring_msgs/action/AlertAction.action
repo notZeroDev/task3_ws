@@ -1,0 +1,7 @@
+string severity
+string message
+---
+bool success
+string dispatched_alert
+---
+string stage
